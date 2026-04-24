@@ -1,46 +1,49 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-const TIMEOUT_MS = 10000; // 10 seconds timeout
+/**
+ * Pings /health to wake up the Render free-tier instance before the real
+ * request. Intentionally fire-and-forget — we don't await or throw here so
+ * a missing /health endpoint never breaks the main flow.
+ */
+export const warmUp = () => {
+  fetch(`${API_URL}/health`).catch(() => {});
+};
 
+/**
+ * Submits graph relationship data to the backend.
+ * No AbortController / hard timeout — Render cold-starts can take 30-50 s
+ * and we must let the browser wait naturally.
+ */
 export const submitData = async (data) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  let response;
 
   try {
-    const response = await fetch(`${API_URL}/bfhl`, {
+    response = await fetch(`${API_URL}/bfhl`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ data }),
-      signal: controller.signal,
     });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      
-      if (response.status === 400) {
-        throw new Error(errorData?.error || 'Invalid request body');
-      } else if (response.status === 500) {
-        throw new Error('Server error. Please try again later.');
-      } else {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-    }
-
-    const result = await response.json();
-    return result;
   } catch (error) {
-    clearTimeout(timeoutId);
-    
-    if (error.name === 'AbortError') {
-      throw new Error('Request timeout. Please try again.');
-    } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    // fetch() itself threw — network unreachable or DNS failure
+    if (error.name === 'TypeError') {
       throw new Error('Network error. Please check your connection.');
+    }
+    throw error;
+  }
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+
+    if (response.status === 400) {
+      throw new Error(errorData?.error || 'Invalid request body');
+    } else if (response.status === 500) {
+      throw new Error('Server error. Please try again later.');
     } else {
-      throw error;
+      throw new Error(`Unexpected error (HTTP ${response.status})`);
     }
   }
+
+  return response.json();
 };

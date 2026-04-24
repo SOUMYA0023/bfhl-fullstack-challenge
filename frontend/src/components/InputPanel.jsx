@@ -1,6 +1,6 @@
 import React from 'react';
 
-const InputPanel = ({ input, onInputChange, onSubmit, onClear, loading }) => {
+const InputPanel = ({ input, onInputChange, onSubmit, onClear, loading, loadingMsg = 'Processing…' }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit();
@@ -35,7 +35,7 @@ const InputPanel = ({ input, onInputChange, onSubmit, onClear, loading }) => {
             {loading ? (
               <>
                 <span className="spinner"></span>
-                Processing...
+                {loadingMsg}
               </>
             ) : (
               'Process Graph'

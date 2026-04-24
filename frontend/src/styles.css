@@ -295,9 +295,24 @@ body {
 }
 
 .error-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
   font-size: 14px;
   color: var(--error-text);
   line-height: 1.5;
+  padding: var(--space-md) var(--space-lg);
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius-md);
+}
+
+.retry-btn {
+  flex-shrink: 0;
+  font-size: 13px;
+  padding: 5px 12px;
+  white-space: nowrap;
 }
 
 .error-dismiss {
