@@ -12,15 +12,15 @@ const TreeNode = ({ node, depth = 0 }) => {
   };
 
   return (
-    <div className="tree-node" style={{ marginLeft: depth > 0 ? '20px' : '0' }}>
+    <div className="tree-item" style={{ paddingLeft: depth > 0 ? '16px' : '0' }}>
       <div 
-        className={`tree-node-content ${hasChildren ? 'clickable' : ''}`}
+        className={`tree-node ${hasChildren ? 'is-expandable' : ''}`}
         onClick={toggleExpand}
       >
         {hasChildren && (
-          <span className="tree-toggle">{isExpanded ? '▼' : '▶'}</span>
+          <span className="tree-toggle">{isExpanded ? '▾' : '▸'}</span>
         )}
-        <span className="tree-label">{node.value}</span>
+        <span className="tree-value">{node.value}</span>
       </div>
       
       {hasChildren && isExpanded && (
@@ -34,24 +34,31 @@ const TreeNode = ({ node, depth = 0 }) => {
   );
 };
 
-const HierarchyTree = ({ hierarchy }) => {
+const HierarchyViewer = ({ hierarchy, index }) => {
   const { root, tree, depth, has_cycle } = hierarchy;
 
   return (
-    <div className="hierarchy-card">
+    <div className="hierarchy-block">
       <div className="hierarchy-header">
-        <h3>Root: {root}</h3>
+        <span className="hierarchy-index">{index}</span>
+        <span className="hierarchy-root">
+          Root: <code>{root}</code>
+        </span>
         <div className="hierarchy-meta">
-          {depth !== undefined && <span className="meta-tag">Depth: {depth}</span>}
-          {has_cycle && <span className="meta-tag warning">Has Cycle</span>}
+          {depth !== undefined && (
+            <span className="meta-item">Depth: {depth}</span>
+          )}
+          {has_cycle && (
+            <span className="meta-item has-cycle">Contains cycle</span>
+          )}
         </div>
       </div>
       
-      <div className="tree-container">
+      <div className="tree-display">
         <TreeNode node={tree} />
       </div>
     </div>
   );
 };
 
-export default HierarchyTree;
+export default HierarchyViewer;
